@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Study Plan: Oct 22 – Dec 31</title>
+<style>
+:root{color-scheme:light dark;--bg:#fff;--fg:#202124;--mut:#5f6368;--line:#dadce0;--bar:#f1f3f4;--card:#d2e3fc;--acc:#1a73e8}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#171717;--fg:#e8eaed;--mut:#9aa0a6;--line:#3c4043;--bar:#262626}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+.wrap{max-width:760px;margin:0 auto;padding:16px}
+header{position:sticky;top:0;background:var(--bg);padding:12px 0;border-bottom:1px solid var(--line);z-index:5}
+h1{margin:0 0 8px;font-size:22px;font-weight:600}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;color:var(--mut)}
+.prog{height:8px;background:var(--bar);border-radius:4px;overflow:hidden;margin-top:8px}
+.prog i{display:block;height:100%;width:0;background:#188038;transition:width .3s}
+.dl{margin-top:8px;font-size:13px;font-weight:600;color:#d93025}
+h2{font-size:26px;font-weight:600;margin:28px 0 4px}
+.week{display:flex;justify-content:space-between;background:var(--bar);border-radius:6px;padding:5px 10px;margin:14px 0 6px;font-size:12px;color:var(--mut)}
+.week b{letter-spacing:.05em}
+.day{display:flex;gap:12px;padding:6px 0;border-bottom:1px solid var(--line)}
+.dt{width:44px;text-align:center;flex:none;padding-top:6px}
+.dt small{display:block;font-size:10px;font-weight:700;color:var(--mut)}
+.dt span{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;font-size:16px}
+.day.today .dt span{background:var(--acc);color:#fff}
+.card{flex:1;border-radius:8px;border-left:5px solid var(--c);background:color-mix(in srgb,var(--c) 18%,var(--bg));padding:8px 12px;position:relative}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+label{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--c);cursor:pointer}
+input[type=checkbox]{width:18px;height:18px;accent-color:var(--c);margin:0}
+.date{font-size:12px;color:var(--mut)}
+.left{position:absolute;right:12px;bottom:6px;font-size:10px;color:var(--mut)}
+textarea{width:100%;min-height:44px;margin-top:6px;padding:4px 0 14px;border:0;background:transparent;color:var(--fg);font:inherit;font-size:13px;resize:vertical;outline:none}
+.done label span{text-decoration:line-through;opacity:.7}
+.dead{--c:#d93025}
+.dead .top label::after{content:"DEADLINE";margin-left:8px;font-size:11px;background:#d93025;color:#fff;padding:1px 7px;border-radius:10px}
+button{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--bar);color:var(--fg);border-radius:6px;padding:4px 10px;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Study Plan: Oct 22 – Dec 31</h1>
+  <div class="row"><span id="stat"></span><span><button id="jump">Jump to today</button> <button id="reset">Reset</button></span></div>
+  <div class="prog"><i id="bar"></i></div>
+  <div class="dl" id="dl"></div>
+</header>
+<main id="list"></main>
+</div>
+<script>
+(function(){
+var START=new Date(2026,9,22),END=new Date(2026,11,31),DEAD=new Date(2026,10,8);
+var COL={9:"#1a73e8",10:"#188038",11:"#a142f4"};
+var KEY="studyplan-2026-v1",state={};
+try{state=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){state={}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+var MS=864e5;
+function day0(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate())}
+function diff(a,b){return Math.round((day0(a)-day0(b))/MS)}
+var MN=["January","February","March","April","May","June","July","August","September","October","November","December"];
+var WD=["SUN","MON","TUE","WED","THU","FRI","SAT"];
+function fmt(d){return MN[d.getMonth()].slice(0,3)+" "+d.getDate()}
+var total=diff(END,START)+1,today=day0(new Date());
+var sun0=new Date(START);sun0.setDate(sun0.getDate()-sun0.getDay());
+var list=document.getElementById("list"),html="",mo=-1;
+for(var i=0;i<total;i++){
+  var d=new Date(START);d.setDate(START.getDate()+i);
+  var n=i+1,isDead=diff(d,DEAD)===0;
+  if(d.getMonth()!==mo){mo=d.getMonth();html+='<h2 style="color:'+COL[mo]+'">'+MN[mo]+' 2026</h2>'}
+  if(d.getDay()===0||i===0){
+    var wn=Math.floor(diff(d,sun0)/7)+1;
+    var we=new Date(d);we.setDate(d.getDate()+(6-d.getDay()));if(we>END)we=END;
+    html+='<div class="week"><b style="color:'+COL[mo]+'">WEEK '+wn+'</b><span>'+fmt(d)+' – '+fmt(we)+'</span></div>';
+  }
+  var s=state[n]||{},isToday=diff(d,today)===0;
+  var left=diff(DEAD,d);
+  var lt=left<0?"":(left===0?"Deadline day":left+(left===1?" day left":" days left"));
+  html+='<div class="day'+(isToday?' today':'')+(s.c?' done':'')+'" id="d'+n+'" data-n="'+n+'">'
+   +'<div class="dt"><small>'+WD[d.getDay()]+'</small><span>'+d.getDate()+'</span></div>'
+   +'<div class="card'+(isDead?' dead':'')+'" style="--c:'+COL[mo]+'">'
+   +'<div class="top"><label><input type="checkbox"'+(s.c?' checked':'')+'><span>Day '+n+'</span></label>'
+   +'<span class="date">'+MN[d.getMonth()]+' '+d.getDate()+', 2026</span></div>'
+   +'<textarea placeholder="Notes…">'+(s.t||"").replace(/&/g,"&amp;").replace(/</g,"&lt;")+'</textarea>'
+   +(lt?'<span class="left">'+lt+'</span>':'')+'</div></div>';
+}
+list.innerHTML=html;
+function upd(){
+  var c=0;for(var k in state)if(state[k].c)c++;
+  document.getElementById("stat").textContent=c+" of "+total+" days done";
+  document.getElementById("bar").style.width=(c/total*100)+"%";
+  var l=diff(DEAD,new Date());
+  document.getElementById("dl").textContent=l>0?"Deadline Nov 8: "+l+(l===1?" day":" days")+" remaining":(l===0?"Deadline is today":"Deadline Nov 8 has passed");
+}
+list.addEventListener("change",function(e){
+  var el=e.target.closest(".day");if(!el||e.target.type!=="checkbox")return;
+  var n=el.dataset.n;state[n]=state[n]||{};state[n].c=e.target.checked;
+  el.classList.toggle("done",e.target.checked);save();upd();
+});
+list.addEventListener("input",function(e){
+  var el=e.target.closest(".day");if(!el||e.target.tagName!=="TEXTAREA")return;
+  var n=el.dataset.n;state[n]=state[n]||{};state[n].t=e.target.value;save();
+});
+document.getElementById("jump").onclick=function(){
+  var i=Math.min(Math.max(diff(new Date(),START),0),total-1)+1;
+  document.getElementById("d"+i).scrollIntoView({behavior:"smooth",block:"center"});
+};
+document.getElementById("reset").onclick=function(){
+  if(confirm("Clear all ticks and notes?")){state={};save();location.reload()}
+};
+upd();
+})();
+</script>
+</body>
+</html>
